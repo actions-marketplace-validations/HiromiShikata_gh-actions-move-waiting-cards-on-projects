@@ -1,8 +1,8 @@
 {
-  "name": "typescript-action",
-  "version": "0.0.0",
+  "name": "gh-actions-move-waiting-cards-on-projects",
+  "version": "0.0.1",
   "private": true,
-  "description": "TypeScript template action",
+  "description": "Move waiting cards on projects",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/HiromiShikata/gh-actions-move-waiting-cards-on-projects.git"
   },
   "keywords": [
     "actions",
-    "node",
-    "setup"
+    "projects",
+    "automation"
   ],
-  "author": "",
+  "author": "shikata.hiromi@gmail.com",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.2.6"
