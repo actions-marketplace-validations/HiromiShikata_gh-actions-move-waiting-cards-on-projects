@@ -34,11 +34,12 @@ jobs:
 
 ### Parameters
 #### DATETIME
-- yyyy/MM/dd
+- MM/DD
+- MM-DD
 - MMDD
 - M/d
 - M/d hh:mm
-#### ISSUE
+#### ISSUE(wip)
 - \#issuenumber
 - repo#issuenumber
 - owner/repo#issuenumber
