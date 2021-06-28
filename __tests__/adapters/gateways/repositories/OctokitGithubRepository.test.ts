@@ -1,4 +1,4 @@
-import {OctokitGithubRepository} from '../../../../src/apadters/gateways/repositoeirs/OctokitGithubRepository'
+import {OctokitGithubRepository} from '../../../../src/adapters/gateways/repositoeirs/OctokitGithubRepository'
 
 describe('OctokitGithubRepository', () => {
   const repo = new OctokitGithubRepository(
@@ -6,6 +6,18 @@ describe('OctokitGithubRepository', () => {
     'gh-actions-move-waiting-cards-on-projects',
     String(process.env.GH_TOKEN)
   )
+  const moveAllCardToInWaiting = async () => {
+    const all = await repo.getCards('test-project', 'To do')
+    for (const card of all) {
+      await repo.moveCard(card, 'test-project', 'In waiting')
+    }
+  }
+  beforeAll(async () => {
+    await moveAllCardToInWaiting()
+  })
+  afterAll(async () => {
+    await moveAllCardToInWaiting()
+  })
   test('getCards and move and comment', async () => {
     const cards = await repo.getCards('test-project', 'In waiting')
     expect(cards.length).toEqual(1)
