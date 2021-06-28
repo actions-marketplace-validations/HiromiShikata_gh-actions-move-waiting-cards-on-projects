@@ -120,8 +120,8 @@ describe('MoveCardsByDateTimeUsecase', () => {
           `projectName`,
           `In waiting`,
           `To do`,
-          [`will close automatically by PR`, `convenience store`],
           `waiting till DATETIME/`,
+          [`will close automatically by PR`, `convenience store`],
           3
         )
         if (expectMove) {

@@ -10,11 +10,11 @@ export class MoveCardsByDateTimeUsecase {
     projectName: string,
     waitingColumnName: string,
     toColumnName: string,
+    prefixForDatetime: string,
     labelsToIgnore: string[],
-    regexForDateConfig: string,
     numberOfDaysToIgnoreWithLabel: number
   ): Promise<void> => {
-    const regex = this.createRegex(regexForDateConfig)
+    const regex = this.createRegex(prefixForDatetime)
     const now = this.datetimeRepository.now()
     const dateToIgnoreWithLabel = this.datetimeRepository.dateBeforeDays(
       numberOfDaysToIgnoreWithLabel
@@ -50,7 +50,7 @@ export class MoveCardsByDateTimeUsecase {
           card,
           `add label ${labelsToIgnore.join(
             ','
-          )} or add prefix ${regexForDateConfig} to move this '${waitingColumnName}'.`
+          )} or add prefix ${prefixForDatetime} to move this '${waitingColumnName}'.`
         )
       }
     }
