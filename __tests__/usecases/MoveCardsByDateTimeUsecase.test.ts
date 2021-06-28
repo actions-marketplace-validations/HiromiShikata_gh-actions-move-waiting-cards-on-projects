@@ -37,6 +37,7 @@ describe('CardWithDate', () => {
         const card = new CardWithDate(
           new Card(
             'id',
+            '1',
             `wait till ${text}/title`,
             [],
             new Date(`2000-01-01T00:00:00Z`)
@@ -63,6 +64,7 @@ describe('MoveCardsByDateTimeUsecase', () => {
           Promise.resolve([
             new Card(
               `id1`,
+              '1',
               `waiting till 01/01/should move`,
               [],
               new Date(`1999-12-01T00:00:00Z`)
@@ -103,7 +105,13 @@ describe('MoveCardsByDateTimeUsecase', () => {
         githubRepo.getCards = jest.fn(
           (projectName: string, columnName: string): Promise<Card[]> =>
             Promise.resolve([
-              new Card(`id1`, title, label ? [label] : [], new Date(datetime))
+              new Card(
+                `id1`,
+                '1',
+                title,
+                label ? [label] : [],
+                new Date(datetime)
+              )
             ])
         )
 

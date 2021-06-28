@@ -66,7 +66,13 @@ export class CardWithDate extends Card {
   datePrefixText?: string
 
   constructor(card: Card, regex: RegExp, now: Date) {
-    super(card.id, card.title, card.labels, card.lastUpdated)
+    super(
+      card.cardId,
+      card.issueNumber,
+      card.title,
+      card.labels,
+      card.lastUpdated
+    )
     const res = regex.exec(card.title)
     if (!res) return
     this.datePrefixText = res[0]

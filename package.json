@@ -25,7 +25,8 @@
   "author": "shikata.hiromi@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.4.0"
+    "@actions/core": "^1.4.0",
+    "octokit": "^1.1.0"
   },
   "devDependencies": {
     "@types/fecha": "^2.3.1",
