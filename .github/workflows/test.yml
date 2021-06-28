@@ -15,10 +15,18 @@ jobs:
           npm install
       - run: |
           npm run all
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: ./
         with:
-          milliseconds: 1000
+          project_name: test-project
+          waiting_column_name: In waiting
+          to_column_name: To do
+          prefix_for_datetime: waiting till DATETIME/
+          labels_to_ignore: '["will close automatically by PR", "will do at convenience store"]'
+          number_of_days_to_ignore_label: 14
+          github_token: ${{ secrets.GH_TOKEN }}
