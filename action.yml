@@ -1,11 +1,22 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Move Waiting cards on project'
+description: 'Check cards in "In waiting" column and move to "To do"'
+author: 'HiromiShikata'
 inputs:
-  milliseconds: # change this
+  project_name:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  waiting_column_name:
+    requerid: true
+  to_column_name:
+    required: true
+  prefix_for_datetime:
+    required: true
+  labels_to_ignore:
+    required: false
+    description: 'type is array. ex)["aaa","bbb"]'
+  number_of_days_to_ignore_label:
+    required: false
+  github_token:
+    required: true
 runs:
   using: 'node12'
   main: 'dist/index.js'

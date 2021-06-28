@@ -25,17 +25,18 @@ jobs:
           project_name: Current
           waiting_column_name: In waiting
           to_column_name: Inbox
-          regex_for_date: waiting till {DATETIME}
-          regex_for_dependency: waiting for {ISSUE}
+          prefix_for_datetime: waiting till DATETIME/
           labels_to_ignore: '["will close automatically by PR", "will do at convenience store"]'
-          move_invalid_cards_in_waiting_column: True
+          number_of_days_to_ignore_label: 14
           github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### Parameters
 #### DATETIME
+- YYYY/MM/DD
 - MM/DD
 - MM-DD
+- YYYYMMDD
 - MMDD
 - M/d
 - M/d hh:mm
