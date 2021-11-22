@@ -2,9 +2,10 @@ import {
   CardWithDate,
   DatetimeRepository,
   GithubRepository,
+  LogPresenter,
   MoveCardsByDateTimeUsecase
-} from '../../src/usecases/MoveCardsByDateTimeUsecase'
-import {Card} from '../../src/domains/Card'
+} from '../../src/usecases/move-cards-by-date-time-usecase'
+import {Card} from '../../src/domains/card'
 describe('CardWithDate', () => {
   describe('convertToDate', () => {
     test.each`
@@ -37,6 +38,7 @@ describe('CardWithDate', () => {
         const card = new CardWithDate(
           new Card(
             'id',
+            'test-repository',
             '1',
             `wait till ${text}/title`,
             [],
@@ -64,6 +66,7 @@ describe('MoveCardsByDateTimeUsecase', () => {
           Promise.resolve([
             new Card(
               `id1`,
+              'test-repository',
               '1',
               `waiting till 01/01/should move`,
               [],
@@ -78,6 +81,9 @@ describe('MoveCardsByDateTimeUsecase', () => {
       commentToTheCard: jest.fn(
         (card: Card, comment: string): Promise<void> => Promise.resolve()
       )
+    }
+    const logPresenter: LogPresenter = {
+      show: console.log
     }
     beforeEach(() => {
       jest.clearAllMocks()
@@ -107,6 +113,7 @@ describe('MoveCardsByDateTimeUsecase', () => {
             Promise.resolve([
               new Card(
                 `id1`,
+                'test-repository',
                 '1',
                 title,
                 label ? [label] : [],
@@ -115,7 +122,11 @@ describe('MoveCardsByDateTimeUsecase', () => {
             ])
         )
 
-        const usecase = new MoveCardsByDateTimeUsecase(datetimeRepo, githubRepo)
+        const usecase = new MoveCardsByDateTimeUsecase(
+          datetimeRepo,
+          githubRepo,
+          logPresenter
+        )
         await usecase.execute(
           `projectName`,
           `In waiting`,

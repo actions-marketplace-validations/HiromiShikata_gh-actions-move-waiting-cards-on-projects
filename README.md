@@ -29,6 +29,9 @@ jobs:
           labels_to_ignore: '["will close automatically by PR", "will do at convenience store"]'
           number_of_days_to_ignore_label: 14
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          how_many_columns_to_get: 5
+          how_many_cards_to_get: 15
+          how_many_labels_to_get: 3
 ```
 
 ### Parameters
@@ -44,6 +47,11 @@ jobs:
 - \#issuenumber
 - repo#issuenumber
 - owner/repo#issuenumber
+
+#### how_many_*_to_get (optional)
+- Due to the limitation of graphql api on github, the lowest possible value is preferable.
+- However, it can be increased according to the condition.
+- [see more](https://github.com/HiromiShikata/gh-actions-move-waiting-cards-on-projects/blob/main/src/adapters/gateways/repositoeirs/OctokitGithubRepository.ts#L182)
 
 ## Development
 
@@ -63,11 +71,9 @@ Run the tests :heavy_check_mark:
 ```bash
 $ npm test
 
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
-
+ PASS  __tests__/consumer-expectation.test.ts
+  ConsumerExpectation Test
+    ✓ execute (2616 ms)
 ...
 ```
 

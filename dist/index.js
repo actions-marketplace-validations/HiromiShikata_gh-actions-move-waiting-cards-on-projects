@@ -1,7 +1,7 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 1135:
+/***/ 8777:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -38,32 +38,31 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Handler = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const MoveCardsByDateTimeUsecase_1 = __nccwpck_require__(4025);
-const OctokitGithubRepository_1 = __nccwpck_require__(9031);
-const SystemDatetimeRepository_1 = __nccwpck_require__(1926);
+const move_cards_by_date_time_usecase_1 = __nccwpck_require__(6223);
+const octokit_github_repository_1 = __nccwpck_require__(2915);
+const system_datetime_repository_1 = __nccwpck_require__(4055);
 class Handler {
     constructor() {
         this.run = () => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const projectName = core.getInput('project_name');
-                const waitingColumnName = core.getInput('waiting_column_name');
-                const toColumnName = core.getInput('to_column_name');
-                const prefixForDatetime = core.getInput('prefix_for_datetime');
-                const labelsToIgnoreText = core.getInput('labels_to_ignore');
-                const numberOfDaysToIgnoreLabel = core.getInput('number_of_days_to_ignore_label');
-                const labelsToIgnore = JSON.parse(labelsToIgnoreText);
-                if (numberOfDaysToIgnoreLabel &&
-                    isNaN(parseInt(numberOfDaysToIgnoreLabel)))
-                    throw new Error(`number_of_days_to_ignore_label should be number. input: ${numberOfDaysToIgnoreLabel}`);
-                const githubToken = core.getInput('github_token');
-                const githubRepository = new OctokitGithubRepository_1.OctokitGithubRepository(github.context.repo.owner, github.context.repo.repo, githubToken);
-                const datetimeRepository = new SystemDatetimeRepository_1.SystemDatetimeRepository();
-                const usecase = new MoveCardsByDateTimeUsecase_1.MoveCardsByDateTimeUsecase(datetimeRepository, githubRepository);
-                yield usecase.execute(projectName, waitingColumnName, toColumnName, prefixForDatetime, labelsToIgnore, parseInt(numberOfDaysToIgnoreLabel));
-            }
-            catch (error) {
-                core.setFailed(error.message);
-            }
+            const projectName = core.getInput('project_name');
+            const waitingColumnName = core.getInput('waiting_column_name');
+            const toColumnName = core.getInput('to_column_name');
+            const prefixForDatetime = core.getInput('prefix_for_datetime');
+            const labelsToIgnoreText = core.getInput('labels_to_ignore');
+            const numberOfDaysToIgnoreLabel = core.getInput('number_of_days_to_ignore_label');
+            const labelsToIgnore = JSON.parse(labelsToIgnoreText);
+            if (numberOfDaysToIgnoreLabel && isNaN(parseInt(numberOfDaysToIgnoreLabel)))
+                throw new Error(`number_of_days_to_ignore_label should be number. input: ${numberOfDaysToIgnoreLabel}`);
+            const githubToken = core.getInput('github_token');
+            let githubRepository;
+            githubRepository = new octokit_github_repository_1.OctokitGithubRepository(github.context.repo.owner, github.context.repo.repo, githubToken, Number.parseInt(core.getInput('how_many_columns_to_get')) || 5, Number.parseInt(core.getInput('how_many_cards_to_get')) || 15, Number.parseInt(core.getInput('how_many_labels_to_get')) || 3);
+            const datetimeRepository = new system_datetime_repository_1.SystemDatetimeRepository();
+            const usecase = new move_cards_by_date_time_usecase_1.MoveCardsByDateTimeUsecase(datetimeRepository, githubRepository, {
+                show: (log) => {
+                    core.info(log);
+                }
+            });
+            yield usecase.execute(projectName, waitingColumnName, toColumnName, prefixForDatetime, labelsToIgnore, parseInt(numberOfDaysToIgnoreLabel));
         });
     }
 }
@@ -72,7 +71,7 @@ exports.Handler = Handler;
 
 /***/ }),
 
-/***/ 9031:
+/***/ 2915:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -90,14 +89,17 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OctokitGithubRepository = void 0;
 const graphql_1 = __nccwpck_require__(8467);
 const octokit_1 = __nccwpck_require__(7467);
-const Card_1 = __nccwpck_require__(7229);
+const card_1 = __nccwpck_require__(5215);
 class OctokitGithubRepository {
-    constructor(ownerName, repositoryName, githubToken) {
+    constructor(ownerName, repositoryName, githubToken, howManyColumnsToGet, howManyCardsToGet, howManyLabelsToGet) {
         this.ownerName = ownerName;
         this.repositoryName = repositoryName;
         this.githubToken = githubToken;
+        this.howManyColumnsToGet = howManyColumnsToGet;
+        this.howManyCardsToGet = howManyCardsToGet;
+        this.howManyLabelsToGet = howManyLabelsToGet;
         this.getCards = (projectName, columnName) => __awaiter(this, void 0, void 0, function* () {
-            const query = this.buildQueryForSearchCards(this.url, projectName);
+            const query = this.buildQueryForSearchCards(this.url, projectName, this.howManyColumnsToGet, this.howManyCardsToGet, this.howManyLabelsToGet);
             const res = yield this.graphqlWithAuth(query);
             const pjs = [].concat(res.resource.projects.nodes, res.resource.owner.projects.nodes);
             this.addPjColumns(pjs);
@@ -106,7 +108,9 @@ class OctokitGithubRepository {
                 .map((pj) => pj.columns.nodes)
                 .reduce((acc, cur) => acc.concat(cur), [])
                 .filter((column) => column.name === columnName)
-                .map((column) => column.cards.nodes.map(card => new Card_1.Card(card.databaseId, card.content ? card.content.number : '', card.content ? card.content.title : '', card.content ? card.content.labels.nodes.map(c => c.name) : [], card.content &&
+                .map((column) => column.cards.nodes.map(card => new card_1.Card(card.databaseId, card.content && card.content.repository
+                ? card.content.repository.name
+                : '', card.content ? card.content.number : '', card.content ? card.content.title : '', card.content ? card.content.labels.nodes.map(c => c.name) : [], card.content &&
                 card.content.timelineItems.nodes.length > 0 &&
                 card.content.timelineItems.nodes[0].createdAt
                 ? new Date(card.content.timelineItems.nodes[0].createdAt)
@@ -131,9 +135,9 @@ class OctokitGithubRepository {
             throw new Error(`failed to move ${card.cardId}: ${card.title}. ${res.data}`);
         });
         this.commentToTheCard = (card, comment) => __awaiter(this, void 0, void 0, function* () {
-            const res = yield this.octokit.request(`POST /repos/owner/{repo}/issues/{issue_number}/comments`, {
+            const res = yield this.octokit.request(`POST /repos/${this.ownerName}/${card.repositoryName}/issues/${card.issueNumber}/comments`, {
                 owner: this.ownerName,
-                repo: this.repositoryName,
+                repo: card.repositoryName,
                 issue_number: card.issueNumber,
                 body: comment
             });
@@ -151,7 +155,7 @@ class OctokitGithubRepository {
             const columnId = findColumnIdFromMap();
             if (columnId)
                 return columnId;
-            const query = this.buildQueryForGetColumns(this.url, projectName);
+            const query = this.buildQueryForGetColumns(this.url, projectName, this.howManyColumnsToGet);
             const res = yield this.graphqlWithAuth(query);
             const pjs = [].concat(res.resource.projects.nodes, res.resource.owner.projects.nodes);
             this.addPjColumns(pjs);
@@ -163,114 +167,94 @@ class OctokitGithubRepository {
                 this.projectColumns.set(pj.name, columnMap);
             }
         };
-        this.buildQueryForSearchCards = (url, projectName) => `
-  {
-  resource(url: "${url}") {
+        this.buildQueryForSearchCards = (url, projectName, howManyColumnsToGet, howManyCardsToGet, howManyLabelsToGet) => `
+query getCards($url: URI = "${url}", $projectName: String = "${projectName}", $howManyColumnsToGet: Int = ${howManyColumnsToGet}, $howManyCardsToGet: Int = ${howManyCardsToGet}, $howManyLabelsToGet: Int = ${howManyLabelsToGet}) {
+  resource(url: $url) {
     ... on Repository {
       name
-      projects(search: "${projectName}", first: 10, states: [OPEN]) {
+      projects(search: $projectName, first: 1, states: [OPEN]) {
         nodes {
-          name
-          columns(first: 20) {
-            nodes {
-              url
-              databaseId
-              name
-              cards(first: 100, archivedStates: [NOT_ARCHIVED]) {
-                nodes {
-                  url
-                  databaseId
-                  createdAt
-                  content {
-                    ... on Issue {
-                      title
-                      number
-                      labels(first: 10) {
-                        nodes {
-                          name
-                        }
-                      }
-                      timelineItems(last: 1) {
-                        nodes {
-                          ... on IssueComment {
-                            createdAt
-                          }
-                        }
-                      }
-                    }
-                    ... on PullRequest {
-                      title
-                      number
-                      labels(first: 10) {
-                        nodes {
-                          name
-                        }
-                      }
-                      timelineItems(last: 1) {
-                        nodes {
-                          ... on IssueComment {
-                            createdAt
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+          ...projectWithCards
         }
       }
       owner {
         ... on ProjectOwner {
-          projects(search: "${projectName}", first: 10, states: [OPEN]) {
+          projects(search: $projectName, first: 1, states: [OPEN]) {
             nodes {
-              name
-              columns(first: 20) {
+              ...projectWithCards
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment projectWithCards on Project {
+  name
+  columns(first: $howManyColumnsToGet) {
+    nodes {
+      url
+      databaseId
+      name
+      cards(first: $howManyCardsToGet, archivedStates: [NOT_ARCHIVED]) {
+        nodes {
+          url
+          databaseId
+          createdAt
+          content {
+            ... on Issue {
+              title
+              number
+              repository {
+                name
+              }
+              labels(first: $howManyLabelsToGet) {
                 nodes {
-                  databaseId
-                  url
                   name
-                  cards(first: 100, archivedStates: [NOT_ARCHIVED]) {
-                    nodes {
-                      url
-                      databaseId
-                      createdAt
-                      content {
-                        ... on Issue {
-                          title
-                          number
-                          labels(first: 10) {
-                            nodes {
-                              name
-                            }
-                          }
-                          timelineItems(last: 1) {
-                            nodes {
-                              ... on IssueComment {
-                                createdAt
-                              }
-                            }
-                          }
-                        }
-                        ... on PullRequest {
-                          title
-                          number
-                          labels(first: 10) {
-                            nodes {
-                              name
-                            }
-                          }
-                          timelineItems(last: 1) {
-                            nodes {
-                              ... on IssueComment {
-                                createdAt
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
+                }
+              }
+              timelineItems(itemTypes: [ISSUE_COMMENT, LABELED_EVENT, RENAMED_TITLE_EVENT, CROSS_REFERENCED_EVENT], last: 1) {
+                nodes {
+                  ... on IssueComment {
+                    createdAt
+                  }
+                  ... on LabeledEvent {
+                    createdAt
+                  }
+                  ... on RenamedTitleEvent {
+                    createdAt
+                  }
+                  ... on CrossReferencedEvent {
+                    createdAt
+                  }
+                }
+              }
+            }
+            ... on PullRequest {
+              title
+              number
+              repository {
+                name
+              }
+              labels(first: $howManyLabelsToGet) {
+                nodes {
+                  name
+                }
+              }
+              timelineItems(itemTypes: [ISSUE_COMMENT, LABELED_EVENT, RENAMED_TITLE_EVENT, CROSS_REFERENCED_EVENT], last: 1) {
+                nodes {
+                  ... on IssueComment {
+                    createdAt
+                  }
+                  ... on LabeledEvent {
+                    createdAt
+                  }
+                  ... on RenamedTitleEvent {
+                    createdAt
+                  }
+                  ... on CrossReferencedEvent {
+                    createdAt
                   }
                 }
               }
@@ -282,15 +266,15 @@ class OctokitGithubRepository {
   }
 }
     `;
-        this.buildQueryForGetColumns = (url, projectName) => `
-  {
-  resource(url: "${url}") {
+        this.buildQueryForGetColumns = (url, projectName, howManyColumnsToGet) => `
+query getColumns($url: URI = "${url}", $projectName: String = "${projectName}", $howManyColumnsToGet: Int = ${howManyColumnsToGet}) {
+  resource(url: $url) {
     ... on Repository {
       name
-      projects(search: "${projectName}", first: 10, states: [OPEN]) {
+      projects(search: $projectName, first: 1, states: [OPEN]) {
         nodes {
           name
-          columns(first: 20) {
+          columns(first: $howManyColumnsToGet) {
             nodes {
               url
               databaseId
@@ -301,10 +285,10 @@ class OctokitGithubRepository {
       }
       owner {
         ... on ProjectOwner {
-          projects(search: "${projectName}", first: 10, states: [OPEN]) {
+          projects(search: $projectName, first: 1, states: [OPEN]) {
             nodes {
               name
-              columns(first: 10) {
+              columns(first: $howManyColumnsToGet) {
                 nodes {
                   name
                   databaseId
@@ -317,6 +301,7 @@ class OctokitGithubRepository {
     }
   }
 }
+
 `;
         this.url = `https://github.com/${ownerName}/${repositoryName}`;
         this.graphqlWithAuth = graphql_1.graphql.defaults({
@@ -334,7 +319,7 @@ exports.OctokitGithubRepository = OctokitGithubRepository;
 
 /***/ }),
 
-/***/ 1926:
+/***/ 4055:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -343,7 +328,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SystemDatetimeRepository = void 0;
 class SystemDatetimeRepository {
     constructor() {
-        this.dateBeforeDays = (days) => new Date(this.now().getTime() + 1000 * 60 * 60 * 24 * days);
+        this.dateBeforeDays = (days) => new Date(this.now().getTime() - 1000 * 60 * 60 * 24 * days);
         this.now = () => new Date();
     }
 }
@@ -352,7 +337,7 @@ exports.SystemDatetimeRepository = SystemDatetimeRepository;
 
 /***/ }),
 
-/***/ 7229:
+/***/ 5215:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -360,8 +345,9 @@ exports.SystemDatetimeRepository = SystemDatetimeRepository;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Card = void 0;
 class Card {
-    constructor(cardId, issueNumber, title, labels, lastUpdated) {
+    constructor(cardId, repositoryName, issueNumber, title, labels, lastUpdated) {
         this.cardId = cardId;
+        this.repositoryName = repositoryName;
         this.issueNumber = issueNumber;
         this.title = title;
         this.labels = labels;
@@ -375,7 +361,7 @@ exports.Card = Card;
 
 /***/ }),
 
-/***/ 4025:
+/***/ 6223:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -391,16 +377,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CardWithDate = exports.MoveCardsByDateTimeUsecase = void 0;
-const Card_1 = __nccwpck_require__(7229);
+const card_1 = __nccwpck_require__(5215);
 class MoveCardsByDateTimeUsecase {
-    constructor(datetimeRepository, githubRepository) {
+    constructor(datetimeRepository, githubRepository, logPresenter) {
         this.datetimeRepository = datetimeRepository;
         this.githubRepository = githubRepository;
+        this.logPresenter = logPresenter;
         this.execute = (projectName, waitingColumnName, toColumnName, prefixForDatetime, labelsToIgnore, numberOfDaysToIgnoreWithLabel) => __awaiter(this, void 0, void 0, function* () {
             const regex = this.createRegex(prefixForDatetime);
             const now = this.datetimeRepository.now();
             const dateToIgnoreWithLabel = this.datetimeRepository.dateBeforeDays(numberOfDaysToIgnoreWithLabel);
             const cards = (yield this.githubRepository.getCards(projectName, waitingColumnName)).map((card) => new CardWithDate(card, regex, now));
+            this.logPresenter.show(JSON.stringify(cards));
             for (const card of cards) {
                 if (card.hasOneLabelAtLeast(labelsToIgnore)) {
                     if (card.lastUpdated.getTime() > dateToIgnoreWithLabel.getTime()) {
@@ -408,20 +396,24 @@ class MoveCardsByDateTimeUsecase {
                     }
                     yield this.githubRepository.moveCard(card, projectName, toColumnName);
                     yield this.githubRepository.commentToTheCard(card, `Please check this issue. ${numberOfDaysToIgnoreWithLabel} days have passed since the last update.`);
+                    this.logPresenter.show(`${card.title} was moved because ${numberOfDaysToIgnoreWithLabel} days have passed since the last update.`);
                 }
                 else if (card.date) {
                     if (card.date.getTime() > now.getTime()) {
                         continue;
                     }
                     yield this.githubRepository.moveCard(card, projectName, toColumnName);
+                    this.logPresenter.show(`${card.title} was moved by datetime. ${card.date}`);
                 }
                 else if (card.datePrefixText) {
                     yield this.githubRepository.moveCard(card, projectName, toColumnName);
                     yield this.githubRepository.commentToTheCard(card, `Please use MMDD or MMDD HH:mm format.`);
+                    this.logPresenter.show(`${card.title} was moved because invalid format of datetime on title.`);
                 }
                 else {
                     yield this.githubRepository.moveCard(card, projectName, toColumnName);
                     yield this.githubRepository.commentToTheCard(card, `add label ${labelsToIgnore.join(',')} or add prefix ${prefixForDatetime} to move this '${waitingColumnName}'.`);
+                    this.logPresenter.show(`${card.title} was moved because no information on title and label.`);
                 }
             }
         });
@@ -432,9 +424,9 @@ class MoveCardsByDateTimeUsecase {
     }
 }
 exports.MoveCardsByDateTimeUsecase = MoveCardsByDateTimeUsecase;
-class CardWithDate extends Card_1.Card {
+class CardWithDate extends card_1.Card {
     constructor(card, regex, now) {
-        super(card.cardId, card.issueNumber, card.title, card.labels, card.lastUpdated);
+        super(card.cardId, card.repositoryName, card.issueNumber, card.title, card.labels, card.lastUpdated);
         this.convertToDate = (text, now) => {
             const dateTimeArray = text.split(' ');
             let dateText = dateTimeArray[0];
@@ -18016,8 +18008,8 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const Handler_1 = __nccwpck_require__(1135);
-new Handler_1.Handler().run();
+const handler_1 = __nccwpck_require__(8777);
+new handler_1.Handler().run();
 
 })();
 

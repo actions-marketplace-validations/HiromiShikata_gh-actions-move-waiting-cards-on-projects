@@ -1,9 +1,10 @@
-import {Card} from '../domains/Card'
+import {Card} from '../domains/card'
 
 export class MoveCardsByDateTimeUsecase {
   constructor(
     private readonly datetimeRepository: DatetimeRepository,
-    private readonly githubRepository: GithubRepository
+    private readonly githubRepository: GithubRepository,
+    private readonly logPresenter: LogPresenter
   ) {}
 
   execute = async (
@@ -22,6 +23,7 @@ export class MoveCardsByDateTimeUsecase {
     const cards = (
       await this.githubRepository.getCards(projectName, waitingColumnName)
     ).map((card): CardWithDate => new CardWithDate(card, regex, now))
+    this.logPresenter.show(JSON.stringify(cards))
 
     for (const card of cards) {
       if (card.hasOneLabelAtLeast(labelsToIgnore)) {
@@ -33,16 +35,25 @@ export class MoveCardsByDateTimeUsecase {
           card,
           `Please check this issue. ${numberOfDaysToIgnoreWithLabel} days have passed since the last update.`
         )
+        this.logPresenter.show(
+          `${card.title} was moved because ${numberOfDaysToIgnoreWithLabel} days have passed since the last update.`
+        )
       } else if (card.date) {
         if (card.date.getTime() > now.getTime()) {
           continue
         }
         await this.githubRepository.moveCard(card, projectName, toColumnName)
+        this.logPresenter.show(
+          `${card.title} was moved by datetime. ${card.date}`
+        )
       } else if (card.datePrefixText) {
         await this.githubRepository.moveCard(card, projectName, toColumnName)
         await this.githubRepository.commentToTheCard(
           card,
           `Please use MMDD or MMDD HH:mm format.`
+        )
+        this.logPresenter.show(
+          `${card.title} was moved because invalid format of datetime on title.`
         )
       } else {
         await this.githubRepository.moveCard(card, projectName, toColumnName)
@@ -51,6 +62,9 @@ export class MoveCardsByDateTimeUsecase {
           `add label ${labelsToIgnore.join(
             ','
           )} or add prefix ${prefixForDatetime} to move this '${waitingColumnName}'.`
+        )
+        this.logPresenter.show(
+          `${card.title} was moved because no information on title and label.`
         )
       }
     }
@@ -68,6 +82,7 @@ export class CardWithDate extends Card {
   constructor(card: Card, regex: RegExp, now: Date) {
     super(
       card.cardId,
+      card.repositoryName,
       card.issueNumber,
       card.title,
       card.labels,
@@ -122,4 +137,8 @@ export interface DatetimeRepository {
   now(): Date
 
   dateBeforeDays(days: number): Date
+}
+
+export interface LogPresenter {
+  show(log: string): void
 }
