@@ -1,8 +1,9 @@
 import * as process from 'process'
 import * as cp from 'child_process'
 import * as path from 'path'
+import {OctokitGithubRepository} from '../src/adapters/gateways/repositoeirs/OctokitGithubRepository'
 
-test('test runs', () => {
+test('test runs', async () => {
   process.env['INPUT_PROJECT_NAME'] = 'test-project'
   process.env['INPUT_WAITING_COLUMN_NAME'] = 'In waiting'
   process.env['INPUT_TO_COLUMN_NAME'] = 'To do'
@@ -23,4 +24,14 @@ test('test runs', () => {
     console.log(error.stdout.toString())
   }
   console.log(cp.execFileSync(np, [ip], options).toString())
+  const githubRepo = new OctokitGithubRepository(
+    'HiromiShikata',
+    'gh-actions-move-waiting-cards-on-projects',
+    process.env.GH_TOKEN || '',
+    5,
+    15,
+    3
+  )
+  const todoCards = await githubRepo.getCards('test-project', 'To do')
+  await githubRepo.moveCard(todoCards[0], 'test-project', 'In waiting')
 })
