@@ -37,6 +37,7 @@ describe('CardWithDate', () => {
         const card = new CardWithDate(
           new Card(
             'id',
+            'test-repository',
             '1',
             `wait till ${text}/title`,
             [],
@@ -64,6 +65,7 @@ describe('MoveCardsByDateTimeUsecase', () => {
           Promise.resolve([
             new Card(
               `id1`,
+              'test-repository',
               '1',
               `waiting till 01/01/should move`,
               [],
@@ -107,6 +109,7 @@ describe('MoveCardsByDateTimeUsecase', () => {
             Promise.resolve([
               new Card(
                 `id1`,
+                'test-repository',
                 '1',
                 title,
                 label ? [label] : [],

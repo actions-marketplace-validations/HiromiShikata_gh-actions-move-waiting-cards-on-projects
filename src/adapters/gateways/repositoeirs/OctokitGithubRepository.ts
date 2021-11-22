@@ -45,6 +45,9 @@ export class OctokitGithubRepository implements GithubRepository {
             createdAt: string
             content?: {
               title: string
+              repository: {
+                name: string
+              }
               number: string
               labels: {
                 nodes: [{name: string}]
@@ -76,6 +79,9 @@ export class OctokitGithubRepository implements GithubRepository {
           card =>
             new Card(
               card.databaseId,
+              card.content && card.content.repository
+                ? card.content.repository.name
+                : '',
               card.content ? card.content.number : '',
               card.content ? card.content.title : '',
               card.content ? card.content.labels.nodes.map(c => c.name) : [],
@@ -116,10 +122,10 @@ export class OctokitGithubRepository implements GithubRepository {
 
   commentToTheCard = async (card: Card, comment: string): Promise<void> => {
     const res = await this.octokit.request(
-      `POST /repos/owner/{repo}/issues/{issue_number}/comments`,
+      `POST /repos/${this.ownerName}/${card.repositoryName}/issues/${card.issueNumber}/comments`,
       {
         owner: this.ownerName,
-        repo: this.repositoryName,
+        repo: card.repositoryName,
         issue_number: card.issueNumber,
         body: comment
       }

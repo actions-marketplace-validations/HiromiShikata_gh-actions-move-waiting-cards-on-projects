@@ -68,6 +68,7 @@ export class CardWithDate extends Card {
   constructor(card: Card, regex: RegExp, now: Date) {
     super(
       card.cardId,
+      card.repositoryName,
       card.issueNumber,
       card.title,
       card.labels,

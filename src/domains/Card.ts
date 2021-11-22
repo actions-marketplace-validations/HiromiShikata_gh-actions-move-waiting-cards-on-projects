@@ -1,6 +1,7 @@
 export class Card {
   constructor(
     readonly cardId: string,
+    readonly repositoryName: string,
     readonly issueNumber: string,
     readonly title: string,
     readonly labels: string[],
