@@ -26,15 +26,24 @@ export class Handler {
         )
 
       const githubToken = core.getInput('github_token')
-      const githubRepository = new OctokitGithubRepository(
+      let githubRepository: OctokitGithubRepository
+      githubRepository = new OctokitGithubRepository(
         github.context.repo.owner,
         github.context.repo.repo,
-        githubToken
+        githubToken,
+        Number.parseInt(core.getInput('howManyColumnsToGet')) || 5,
+        Number.parseInt(core.getInput('howManyCardsToGet')) || 15,
+        Number.parseInt(core.getInput('howManyLabelsToGet')) || 3
       )
       const datetimeRepository = new SystemDatetimeRepository()
       const usecase = new MoveCardsByDateTimeUsecase(
         datetimeRepository,
-        githubRepository
+        githubRepository,
+        {
+          show: (log: string) => {
+            core.info(log)
+          }
+        }
       )
       await usecase.execute(
         projectName,

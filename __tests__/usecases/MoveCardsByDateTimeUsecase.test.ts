@@ -2,6 +2,7 @@ import {
   CardWithDate,
   DatetimeRepository,
   GithubRepository,
+  LogPresenter,
   MoveCardsByDateTimeUsecase
 } from '../../src/usecases/MoveCardsByDateTimeUsecase'
 import {Card} from '../../src/domains/Card'
@@ -81,6 +82,9 @@ describe('MoveCardsByDateTimeUsecase', () => {
         (card: Card, comment: string): Promise<void> => Promise.resolve()
       )
     }
+    const logPresenter: LogPresenter = {
+      show: console.log
+    }
     beforeEach(() => {
       jest.clearAllMocks()
     })
@@ -118,7 +122,11 @@ describe('MoveCardsByDateTimeUsecase', () => {
             ])
         )
 
-        const usecase = new MoveCardsByDateTimeUsecase(datetimeRepo, githubRepo)
+        const usecase = new MoveCardsByDateTimeUsecase(
+          datetimeRepo,
+          githubRepo,
+          logPresenter
+        )
         await usecase.execute(
           `projectName`,
           `In waiting`,
