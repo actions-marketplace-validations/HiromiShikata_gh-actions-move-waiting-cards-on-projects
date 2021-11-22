@@ -1,4 +1,4 @@
-import {DatetimeRepository} from '../../../usecases/MoveCardsByDateTimeUsecase'
+import {DatetimeRepository} from '../../../usecases/move-cards-by-date-time-usecase'
 
 export class SystemDatetimeRepository implements DatetimeRepository {
   dateBeforeDays = (days: number): Date =>

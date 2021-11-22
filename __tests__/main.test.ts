@@ -1,7 +1,7 @@
 import * as process from 'process'
 import * as cp from 'child_process'
 import * as path from 'path'
-import {OctokitGithubRepository} from '../src/adapters/gateways/repositoeirs/OctokitGithubRepository'
+import {OctokitGithubRepository} from '../src/adapters/gateways/repositoeirs/octokit-github-repository'
 
 test('test runs', async () => {
   process.env['INPUT_PROJECT_NAME'] = 'test-project'

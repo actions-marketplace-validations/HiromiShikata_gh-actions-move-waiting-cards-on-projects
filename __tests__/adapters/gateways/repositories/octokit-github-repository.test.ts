@@ -1,4 +1,4 @@
-import {OctokitGithubRepository} from '../../../../src/adapters/gateways/repositoeirs/OctokitGithubRepository'
+import {OctokitGithubRepository} from '../../../../src/adapters/gateways/repositoeirs/octokit-github-repository'
 
 describe('OctokitGithubRepository', () => {
   const repo = new OctokitGithubRepository(

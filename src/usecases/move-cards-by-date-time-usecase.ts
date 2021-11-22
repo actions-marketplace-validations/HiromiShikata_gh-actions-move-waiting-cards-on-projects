@@ -1,4 +1,4 @@
-import {Card} from '../domains/Card'
+import {Card} from '../domains/card'
 
 export class MoveCardsByDateTimeUsecase {
   constructor(

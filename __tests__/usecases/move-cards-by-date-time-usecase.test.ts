@@ -4,8 +4,8 @@ import {
   GithubRepository,
   LogPresenter,
   MoveCardsByDateTimeUsecase
-} from '../../src/usecases/MoveCardsByDateTimeUsecase'
-import {Card} from '../../src/domains/Card'
+} from '../../src/usecases/move-cards-by-date-time-usecase'
+import {Card} from '../../src/domains/card'
 describe('CardWithDate', () => {
   describe('convertToDate', () => {
     test.each`

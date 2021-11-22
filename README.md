@@ -71,7 +71,7 @@ Run the tests :heavy_check_mark:
 ```bash
 $ npm test
 
- PASS  __tests__/ConsumerExpectation.test.ts
+ PASS  __tests__/consumer-expectation.test.ts
   ConsumerExpectation Test
     ✓ execute (2616 ms)
 ...

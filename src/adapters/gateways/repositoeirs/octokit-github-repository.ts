@@ -1,7 +1,7 @@
 import {graphql, GraphQlQueryResponseData} from '@octokit/graphql'
 import {Octokit} from 'octokit'
-import {GithubRepository} from '../../../usecases/MoveCardsByDateTimeUsecase'
-import {Card} from '../../../domains/Card'
+import {GithubRepository} from '../../../usecases/move-cards-by-date-time-usecase'
+import {Card} from '../../../domains/card'
 
 export class OctokitGithubRepository implements GithubRepository {
   private readonly graphqlWithAuth: typeof graphql

@@ -1,4 +1,4 @@
-import {SystemDatetimeRepository} from '../../../../src/adapters/gateways/repositoeirs/SystemDatetimeRepository'
+import {SystemDatetimeRepository} from '../../../../src/adapters/gateways/repositoeirs/system-datetime-repository'
 
 describe('SystemDatetimeRepository', () => {
   const repo = new SystemDatetimeRepository()

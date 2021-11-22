@@ -1,7 +1,7 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 1135:
+/***/ 8777:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -38,37 +38,31 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Handler = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const MoveCardsByDateTimeUsecase_1 = __nccwpck_require__(4025);
-const OctokitGithubRepository_1 = __nccwpck_require__(9031);
-const SystemDatetimeRepository_1 = __nccwpck_require__(1926);
+const move_cards_by_date_time_usecase_1 = __nccwpck_require__(6223);
+const octokit_github_repository_1 = __nccwpck_require__(2915);
+const system_datetime_repository_1 = __nccwpck_require__(4055);
 class Handler {
     constructor() {
         this.run = () => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const projectName = core.getInput('project_name');
-                const waitingColumnName = core.getInput('waiting_column_name');
-                const toColumnName = core.getInput('to_column_name');
-                const prefixForDatetime = core.getInput('prefix_for_datetime');
-                const labelsToIgnoreText = core.getInput('labels_to_ignore');
-                const numberOfDaysToIgnoreLabel = core.getInput('number_of_days_to_ignore_label');
-                const labelsToIgnore = JSON.parse(labelsToIgnoreText);
-                if (numberOfDaysToIgnoreLabel &&
-                    isNaN(parseInt(numberOfDaysToIgnoreLabel)))
-                    throw new Error(`number_of_days_to_ignore_label should be number. input: ${numberOfDaysToIgnoreLabel}`);
-                const githubToken = core.getInput('github_token');
-                let githubRepository;
-                githubRepository = new OctokitGithubRepository_1.OctokitGithubRepository(github.context.repo.owner, github.context.repo.repo, githubToken, Number.parseInt(core.getInput('how_many_columns_to_get')) || 5, Number.parseInt(core.getInput('how_many_cards_to_get')) || 15, Number.parseInt(core.getInput('how_many_labels_to_get')) || 3);
-                const datetimeRepository = new SystemDatetimeRepository_1.SystemDatetimeRepository();
-                const usecase = new MoveCardsByDateTimeUsecase_1.MoveCardsByDateTimeUsecase(datetimeRepository, githubRepository, {
-                    show: (log) => {
-                        core.info(log);
-                    }
-                });
-                yield usecase.execute(projectName, waitingColumnName, toColumnName, prefixForDatetime, labelsToIgnore, parseInt(numberOfDaysToIgnoreLabel));
-            }
-            catch (error) {
-                core.setFailed(error.message);
-            }
+            const projectName = core.getInput('project_name');
+            const waitingColumnName = core.getInput('waiting_column_name');
+            const toColumnName = core.getInput('to_column_name');
+            const prefixForDatetime = core.getInput('prefix_for_datetime');
+            const labelsToIgnoreText = core.getInput('labels_to_ignore');
+            const numberOfDaysToIgnoreLabel = core.getInput('number_of_days_to_ignore_label');
+            const labelsToIgnore = JSON.parse(labelsToIgnoreText);
+            if (numberOfDaysToIgnoreLabel && isNaN(parseInt(numberOfDaysToIgnoreLabel)))
+                throw new Error(`number_of_days_to_ignore_label should be number. input: ${numberOfDaysToIgnoreLabel}`);
+            const githubToken = core.getInput('github_token');
+            let githubRepository;
+            githubRepository = new octokit_github_repository_1.OctokitGithubRepository(github.context.repo.owner, github.context.repo.repo, githubToken, Number.parseInt(core.getInput('how_many_columns_to_get')) || 5, Number.parseInt(core.getInput('how_many_cards_to_get')) || 15, Number.parseInt(core.getInput('how_many_labels_to_get')) || 3);
+            const datetimeRepository = new system_datetime_repository_1.SystemDatetimeRepository();
+            const usecase = new move_cards_by_date_time_usecase_1.MoveCardsByDateTimeUsecase(datetimeRepository, githubRepository, {
+                show: (log) => {
+                    core.info(log);
+                }
+            });
+            yield usecase.execute(projectName, waitingColumnName, toColumnName, prefixForDatetime, labelsToIgnore, parseInt(numberOfDaysToIgnoreLabel));
         });
     }
 }
@@ -77,7 +71,7 @@ exports.Handler = Handler;
 
 /***/ }),
 
-/***/ 9031:
+/***/ 2915:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -95,7 +89,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OctokitGithubRepository = void 0;
 const graphql_1 = __nccwpck_require__(8467);
 const octokit_1 = __nccwpck_require__(7467);
-const Card_1 = __nccwpck_require__(7229);
+const card_1 = __nccwpck_require__(5215);
 class OctokitGithubRepository {
     constructor(ownerName, repositoryName, githubToken, howManyColumnsToGet, howManyCardsToGet, howManyLabelsToGet) {
         this.ownerName = ownerName;
@@ -114,7 +108,7 @@ class OctokitGithubRepository {
                 .map((pj) => pj.columns.nodes)
                 .reduce((acc, cur) => acc.concat(cur), [])
                 .filter((column) => column.name === columnName)
-                .map((column) => column.cards.nodes.map(card => new Card_1.Card(card.databaseId, card.content && card.content.repository
+                .map((column) => column.cards.nodes.map(card => new card_1.Card(card.databaseId, card.content && card.content.repository
                 ? card.content.repository.name
                 : '', card.content ? card.content.number : '', card.content ? card.content.title : '', card.content ? card.content.labels.nodes.map(c => c.name) : [], card.content &&
                 card.content.timelineItems.nodes.length > 0 &&
@@ -325,7 +319,7 @@ exports.OctokitGithubRepository = OctokitGithubRepository;
 
 /***/ }),
 
-/***/ 1926:
+/***/ 4055:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -343,7 +337,7 @@ exports.SystemDatetimeRepository = SystemDatetimeRepository;
 
 /***/ }),
 
-/***/ 7229:
+/***/ 5215:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -367,7 +361,7 @@ exports.Card = Card;
 
 /***/ }),
 
-/***/ 4025:
+/***/ 6223:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -383,7 +377,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CardWithDate = exports.MoveCardsByDateTimeUsecase = void 0;
-const Card_1 = __nccwpck_require__(7229);
+const card_1 = __nccwpck_require__(5215);
 class MoveCardsByDateTimeUsecase {
     constructor(datetimeRepository, githubRepository, logPresenter) {
         this.datetimeRepository = datetimeRepository;
@@ -430,7 +424,7 @@ class MoveCardsByDateTimeUsecase {
     }
 }
 exports.MoveCardsByDateTimeUsecase = MoveCardsByDateTimeUsecase;
-class CardWithDate extends Card_1.Card {
+class CardWithDate extends card_1.Card {
     constructor(card, regex, now) {
         super(card.cardId, card.repositoryName, card.issueNumber, card.title, card.labels, card.lastUpdated);
         this.convertToDate = (text, now) => {
@@ -18014,8 +18008,8 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const Handler_1 = __nccwpck_require__(1135);
-new Handler_1.Handler().run();
+const handler_1 = __nccwpck_require__(8777);
+new handler_1.Handler().run();
 
 })();
 

@@ -1,6 +1,6 @@
-import {MoveCardsByDateTimeUsecase} from '../src/usecases/MoveCardsByDateTimeUsecase'
-import {SystemDatetimeRepository} from '../src/adapters/gateways/repositoeirs/SystemDatetimeRepository'
-import {OctokitGithubRepository} from '../src/adapters/gateways/repositoeirs/OctokitGithubRepository'
+import {MoveCardsByDateTimeUsecase} from '../src/usecases/move-cards-by-date-time-usecase'
+import {SystemDatetimeRepository} from '../src/adapters/gateways/repositoeirs/system-datetime-repository'
+import {OctokitGithubRepository} from '../src/adapters/gateways/repositoeirs/octokit-github-repository'
 
 describe('ConsumerExpectation Test', () => {
   test('execute', async () => {
