@@ -12,7 +12,10 @@ export class OctokitGithubRepository implements GithubRepository {
   constructor(
     private readonly ownerName: string,
     private readonly repositoryName: string,
-    private readonly githubToken: string
+    private readonly githubToken: string,
+    private readonly howManyColumnsToGet: number,
+    private readonly howManyCardsToGet: number,
+    private readonly howManyLabelsToGet: number
   ) {
     this.url = `https://github.com/${ownerName}/${repositoryName}`
     this.graphqlWithAuth = graphql.defaults({
@@ -61,7 +64,13 @@ export class OctokitGithubRepository implements GithubRepository {
       }
     }
 
-    const query = this.buildQueryForSearchCards(this.url, projectName)
+    const query = this.buildQueryForSearchCards(
+      this.url,
+      projectName,
+      this.howManyColumnsToGet,
+      this.howManyCardsToGet,
+      this.howManyLabelsToGet
+    )
 
     const res: GraphQlQueryResponseData = await this.graphqlWithAuth(query)
     const pjs: PJ[] = [].concat(
@@ -146,7 +155,11 @@ export class OctokitGithubRepository implements GithubRepository {
     const columnId = findColumnIdFromMap()
     if (columnId) return columnId
 
-    const query = this.buildQueryForGetColumns(this.url, projectName)
+    const query = this.buildQueryForGetColumns(
+      this.url,
+      projectName,
+      this.howManyColumnsToGet
+    )
     const res: GraphQlQueryResponseData = await this.graphqlWithAuth(query)
     const pjs: Project[] = [].concat(
       res.resource.projects.nodes,
@@ -168,115 +181,98 @@ export class OctokitGithubRepository implements GithubRepository {
 
   private buildQueryForSearchCards = (
     url: string,
-    projectName: string
+    projectName: string,
+    howManyColumnsToGet: number,
+    howManyCardsToGet: number,
+    howManyLabelsToGet: number
   ): string => `
-  {
-  resource(url: "${url}") {
+query getCards($url: URI = "${url}", $projectName: String = "${projectName}", $howManyColumnsToGet: Int = ${howManyColumnsToGet}, $howManyCardsToGet: Int = ${howManyCardsToGet}, $howManyLabelsToGet: Int = ${howManyLabelsToGet}) {
+  resource(url: $url) {
     ... on Repository {
       name
-      projects(search: "${projectName}", first: 10, states: [OPEN]) {
+      projects(search: $projectName, first: 1, states: [OPEN]) {
         nodes {
-          name
-          columns(first: 20) {
-            nodes {
-              url
-              databaseId
-              name
-              cards(first: 100, archivedStates: [NOT_ARCHIVED]) {
-                nodes {
-                  url
-                  databaseId
-                  createdAt
-                  content {
-                    ... on Issue {
-                      title
-                      number
-                      labels(first: 10) {
-                        nodes {
-                          name
-                        }
-                      }
-                      timelineItems(last: 1) {
-                        nodes {
-                          ... on IssueComment {
-                            createdAt
-                          }
-                        }
-                      }
-                    }
-                    ... on PullRequest {
-                      title
-                      number
-                      labels(first: 10) {
-                        nodes {
-                          name
-                        }
-                      }
-                      timelineItems(last: 1) {
-                        nodes {
-                          ... on IssueComment {
-                            createdAt
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+          ...projectWithCards
         }
       }
       owner {
         ... on ProjectOwner {
-          projects(search: "${projectName}", first: 10, states: [OPEN]) {
+          projects(search: $projectName, first: 1, states: [OPEN]) {
             nodes {
-              name
-              columns(first: 20) {
+              ...projectWithCards
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment projectWithCards on Project {
+  name
+  columns(first: $howManyColumnsToGet) {
+    nodes {
+      url
+      databaseId
+      name
+      cards(first: $howManyCardsToGet, archivedStates: [NOT_ARCHIVED]) {
+        nodes {
+          url
+          databaseId
+          createdAt
+          content {
+            ... on Issue {
+              title
+              number
+              repository {
+                name
+              }
+              labels(first: $howManyLabelsToGet) {
                 nodes {
-                  databaseId
-                  url
                   name
-                  cards(first: 100, archivedStates: [NOT_ARCHIVED]) {
-                    nodes {
-                      url
-                      databaseId
-                      createdAt
-                      content {
-                        ... on Issue {
-                          title
-                          number
-                          labels(first: 10) {
-                            nodes {
-                              name
-                            }
-                          }
-                          timelineItems(last: 1) {
-                            nodes {
-                              ... on IssueComment {
-                                createdAt
-                              }
-                            }
-                          }
-                        }
-                        ... on PullRequest {
-                          title
-                          number
-                          labels(first: 10) {
-                            nodes {
-                              name
-                            }
-                          }
-                          timelineItems(last: 1) {
-                            nodes {
-                              ... on IssueComment {
-                                createdAt
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
+                }
+              }
+              timelineItems(itemTypes: [ISSUE_COMMENT, LABELED_EVENT, RENAMED_TITLE_EVENT, CROSS_REFERENCED_EVENT], last: 1) {
+                nodes {
+                  ... on IssueComment {
+                    createdAt
+                  }
+                  ... on LabeledEvent {
+                    createdAt
+                  }
+                  ... on RenamedTitleEvent {
+                    createdAt
+                  }
+                  ... on CrossReferencedEvent {
+                    createdAt
+                  }
+                }
+              }
+            }
+            ... on PullRequest {
+              title
+              number
+              repository {
+                name
+              }
+              labels(first: $howManyLabelsToGet) {
+                nodes {
+                  name
+                }
+              }
+              timelineItems(itemTypes: [ISSUE_COMMENT, LABELED_EVENT, RENAMED_TITLE_EVENT, CROSS_REFERENCED_EVENT], last: 1) {
+                nodes {
+                  ... on IssueComment {
+                    createdAt
+                  }
+                  ... on LabeledEvent {
+                    createdAt
+                  }
+                  ... on RenamedTitleEvent {
+                    createdAt
+                  }
+                  ... on CrossReferencedEvent {
+                    createdAt
                   }
                 }
               }
@@ -290,16 +286,17 @@ export class OctokitGithubRepository implements GithubRepository {
     `
   private buildQueryForGetColumns = (
     url: string,
-    projectName: string
+    projectName: string,
+    howManyColumnsToGet: number
   ): string => `
-  {
-  resource(url: "${url}") {
+query getColumns($url: URI = "${url}", $projectName: String = "${projectName}", $howManyColumnsToGet: Int = ${howManyColumnsToGet}) {
+  resource(url: $url) {
     ... on Repository {
       name
-      projects(search: "${projectName}", first: 10, states: [OPEN]) {
+      projects(search: $projectName, first: 1, states: [OPEN]) {
         nodes {
           name
-          columns(first: 20) {
+          columns(first: $howManyColumnsToGet) {
             nodes {
               url
               databaseId
@@ -310,10 +307,10 @@ export class OctokitGithubRepository implements GithubRepository {
       }
       owner {
         ... on ProjectOwner {
-          projects(search: "${projectName}", first: 10, states: [OPEN]) {
+          projects(search: $projectName, first: 1, states: [OPEN]) {
             nodes {
               name
-              columns(first: 10) {
+              columns(first: $howManyColumnsToGet) {
                 nodes {
                   name
                   databaseId
@@ -326,6 +323,7 @@ export class OctokitGithubRepository implements GithubRepository {
     }
   }
 }
+
 `
 }
 

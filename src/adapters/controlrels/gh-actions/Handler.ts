@@ -31,9 +31,9 @@ export class Handler {
         github.context.repo.owner,
         github.context.repo.repo,
         githubToken,
-        Number.parseInt(core.getInput('howManyColumnsToGet')) || 5,
-        Number.parseInt(core.getInput('howManyCardsToGet')) || 15,
-        Number.parseInt(core.getInput('howManyLabelsToGet')) || 3
+        Number.parseInt(core.getInput('how_many_columns_to_get')) || 5,
+        Number.parseInt(core.getInput('how_many_cards_to_get')) || 15,
+        Number.parseInt(core.getInput('how_many_labels_to_get')) || 3
       )
       const datetimeRepository = new SystemDatetimeRepository()
       const usecase = new MoveCardsByDateTimeUsecase(

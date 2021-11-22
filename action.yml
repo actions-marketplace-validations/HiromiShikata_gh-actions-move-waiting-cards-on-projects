@@ -17,6 +17,14 @@ inputs:
     required: false
   github_token:
     required: true
+  how_many_columns_to_get:
+    required: false
+  how_many_cards_to_get:
+    required: false
+  how_many_labels_to_get:
+    required: false
+
+
 runs:
   using: 'node12'
   main: 'dist/index.js'

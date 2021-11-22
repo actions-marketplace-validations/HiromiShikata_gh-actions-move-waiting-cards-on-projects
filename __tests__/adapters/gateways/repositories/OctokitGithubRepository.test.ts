@@ -4,7 +4,10 @@ describe('OctokitGithubRepository', () => {
   const repo = new OctokitGithubRepository(
     'HiromiShikata',
     'gh-actions-move-waiting-cards-on-projects',
-    String(process.env.GH_TOKEN)
+    String(process.env.GH_TOKEN),
+    5,
+    15,
+    3
   )
   const moveAllCardToInWaiting = async () => {
     const all = await repo.getCards('test-project', 'To do')
