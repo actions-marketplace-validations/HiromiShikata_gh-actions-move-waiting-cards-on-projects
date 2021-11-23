@@ -44,26 +44,53 @@ const system_datetime_repository_1 = __nccwpck_require__(4055);
 class Handler {
     constructor() {
         this.run = () => __awaiter(this, void 0, void 0, function* () {
-            const projectName = core.getInput('project_name');
-            const waitingColumnName = core.getInput('waiting_column_name');
-            const toColumnName = core.getInput('to_column_name');
-            const prefixForDatetime = core.getInput('prefix_for_datetime');
-            const labelsToIgnoreText = core.getInput('labels_to_ignore');
-            const numberOfDaysToIgnoreLabel = core.getInput('number_of_days_to_ignore_label');
-            const labelsToIgnore = JSON.parse(labelsToIgnoreText);
-            if (numberOfDaysToIgnoreLabel && isNaN(parseInt(numberOfDaysToIgnoreLabel)))
-                throw new Error(`number_of_days_to_ignore_label should be number. input: ${numberOfDaysToIgnoreLabel}`);
-            const githubToken = core.getInput('github_token');
-            let githubRepository;
-            githubRepository = new octokit_github_repository_1.OctokitGithubRepository(github.context.repo.owner, github.context.repo.repo, githubToken, Number.parseInt(core.getInput('how_many_columns_to_get')) || 5, Number.parseInt(core.getInput('how_many_cards_to_get')) || 15, Number.parseInt(core.getInput('how_many_labels_to_get')) || 3);
-            const datetimeRepository = new system_datetime_repository_1.SystemDatetimeRepository();
-            const usecase = new move_cards_by_date_time_usecase_1.MoveCardsByDateTimeUsecase(datetimeRepository, githubRepository, {
-                show: (log) => {
-                    core.info(log);
-                }
+            const githubRepository = new octokit_github_repository_1.OctokitGithubRepository(github.context.repo.owner, github.context.repo.repo, this.getInputString('github_token', undefined, core), this.getInputNumber('how_many_columns_to_get', 5, core), this.getInputNumber('how_many_cards_to_get', 15, core), this.getInputNumber('how_many_labels_to_get', 3, core));
+            const usecase = new move_cards_by_date_time_usecase_1.MoveCardsByDateTimeUsecase(new system_datetime_repository_1.SystemDatetimeRepository(), githubRepository, {
+                show: core.info
             });
-            yield usecase.execute(projectName, waitingColumnName, toColumnName, prefixForDatetime, labelsToIgnore, parseInt(numberOfDaysToIgnoreLabel));
+            yield usecase.execute(this.getInputString('project_name', undefined, core), this.getInputString('waiting_column_name', undefined, core), this.getInputString('to_column_name', undefined, core), this.getInputString('prefix_for_datetime', undefined, core), this.getInputArray('labels_to_ignore', '[]', core), this.getInputNumber('number_of_days_to_ignore_label', undefined, core), this.getInputBoolean('dont_move_issues_that_has_no_information_why_waiting', false, core));
         });
+        this.getInputString = (paramName, defaultValue, params) => {
+            const strValue = params.getInput(paramName);
+            if (!strValue) {
+                if (!defaultValue) {
+                    throw new Error(`${paramName} is required.`);
+                }
+                return defaultValue;
+            }
+            return strValue;
+        };
+        this.getInputArray = (paramName, defaultValue, params) => {
+            const strValue = this.getInputString(paramName, defaultValue, params);
+            return JSON.parse(strValue);
+        };
+        this.getInputNumber = (paramName, defaultValue, params) => {
+            const strValue = params.getInput(paramName);
+            if (!strValue) {
+                if (!defaultValue) {
+                    throw new Error(`${paramName} is required.`);
+                }
+                return defaultValue;
+            }
+            if (isNaN(parseInt(strValue))) {
+                throw new Error(`${paramName} should be number. input: ${strValue}`);
+            }
+            return parseInt(strValue);
+        };
+        this.getInputBoolean = (paramName, defaultValue, params) => {
+            const strValue = params.getInput(paramName);
+            if (!strValue) {
+                if (defaultValue === undefined) {
+                    throw new Error(`${paramName} is required.`);
+                }
+                return defaultValue;
+            }
+            const boolStrValue = strValue.toLowerCase();
+            if (boolStrValue !== 'true' && boolStrValue !== 'false') {
+                throw new Error(`${paramName} should be true/false. input: ${strValue}`);
+            }
+            return boolStrValue === 'true';
+        };
     }
 }
 exports.Handler = Handler;
@@ -383,7 +410,7 @@ class MoveCardsByDateTimeUsecase {
         this.datetimeRepository = datetimeRepository;
         this.githubRepository = githubRepository;
         this.logPresenter = logPresenter;
-        this.execute = (projectName, waitingColumnName, toColumnName, prefixForDatetime, labelsToIgnore, numberOfDaysToIgnoreWithLabel) => __awaiter(this, void 0, void 0, function* () {
+        this.execute = (projectName, waitingColumnName, toColumnName, prefixForDatetime, labelsToIgnore, numberOfDaysToIgnoreWithLabel, dontMoveIssuesThatHasNoInformationWhyWaiting) => __awaiter(this, void 0, void 0, function* () {
             const regex = this.createRegex(prefixForDatetime);
             const now = this.datetimeRepository.now();
             const dateToIgnoreWithLabel = this.datetimeRepository.dateBeforeDays(numberOfDaysToIgnoreWithLabel);
@@ -411,6 +438,9 @@ class MoveCardsByDateTimeUsecase {
                     this.logPresenter.show(`${card.title} was moved because invalid format of datetime on title.`);
                 }
                 else {
+                    if (dontMoveIssuesThatHasNoInformationWhyWaiting) {
+                        continue;
+                    }
                     yield this.githubRepository.moveCard(card, projectName, toColumnName);
                     yield this.githubRepository.commentToTheCard(card, `add label ${labelsToIgnore.join(',')} or add prefix ${prefixForDatetime} to move this '${waitingColumnName}'.`);
                     this.logPresenter.show(`${card.title} was moved because no information on title and label.`);

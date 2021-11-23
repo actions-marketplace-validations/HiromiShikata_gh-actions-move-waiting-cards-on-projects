@@ -6,48 +6,91 @@ import {SystemDatetimeRepository} from '../../gateways/repositoeirs/system-datet
 
 export class Handler {
   run = async (): Promise<void> => {
-    const projectName = core.getInput('project_name')
-    const waitingColumnName = core.getInput('waiting_column_name')
-    const toColumnName = core.getInput('to_column_name')
-    const prefixForDatetime = core.getInput('prefix_for_datetime')
-    const labelsToIgnoreText = core.getInput('labels_to_ignore')
-    const numberOfDaysToIgnoreLabel = core.getInput(
-      'number_of_days_to_ignore_label'
-    )
-
-    const labelsToIgnore = JSON.parse(labelsToIgnoreText)
-    if (numberOfDaysToIgnoreLabel && isNaN(parseInt(numberOfDaysToIgnoreLabel)))
-      throw new Error(
-        `number_of_days_to_ignore_label should be number. input: ${numberOfDaysToIgnoreLabel}`
-      )
-
-    const githubToken = core.getInput('github_token')
-    let githubRepository: OctokitGithubRepository
-    githubRepository = new OctokitGithubRepository(
+    const githubRepository = new OctokitGithubRepository(
       github.context.repo.owner,
       github.context.repo.repo,
-      githubToken,
-      Number.parseInt(core.getInput('how_many_columns_to_get')) || 5,
-      Number.parseInt(core.getInput('how_many_cards_to_get')) || 15,
-      Number.parseInt(core.getInput('how_many_labels_to_get')) || 3
+      this.getInputString('github_token', undefined, core),
+      this.getInputNumber('how_many_columns_to_get', 5, core),
+      this.getInputNumber('how_many_cards_to_get', 15, core),
+      this.getInputNumber('how_many_labels_to_get', 3, core)
     )
-    const datetimeRepository = new SystemDatetimeRepository()
     const usecase = new MoveCardsByDateTimeUsecase(
-      datetimeRepository,
+      new SystemDatetimeRepository(),
       githubRepository,
       {
-        show: (log: string) => {
-          core.info(log)
-        }
+        show: core.info
       }
     )
     await usecase.execute(
-      projectName,
-      waitingColumnName,
-      toColumnName,
-      prefixForDatetime,
-      labelsToIgnore,
-      parseInt(numberOfDaysToIgnoreLabel)
+      this.getInputString('project_name', undefined, core),
+      this.getInputString('waiting_column_name', undefined, core),
+      this.getInputString('to_column_name', undefined, core),
+      this.getInputString('prefix_for_datetime', undefined, core),
+      this.getInputArray('labels_to_ignore', '[]', core),
+      this.getInputNumber('number_of_days_to_ignore_label', undefined, core),
+      this.getInputBoolean(
+        'dont_move_issues_that_has_no_information_why_waiting',
+        false,
+        core
+      )
     )
+  }
+  getInputString = (
+    paramName: string,
+    defaultValue: string | undefined,
+    params: {getInput(name: string): string}
+  ): string => {
+    const strValue = params.getInput(paramName)
+    if (!strValue) {
+      if (!defaultValue) {
+        throw new Error(`${paramName} is required.`)
+      }
+      return defaultValue
+    }
+    return strValue
+  }
+  getInputArray = (
+    paramName: string,
+    defaultValue: string | undefined,
+    params: {getInput(name: string): string}
+  ): [] => {
+    const strValue = this.getInputString(paramName, defaultValue, params)
+    return JSON.parse(strValue)
+  }
+
+  getInputNumber = (
+    paramName: string,
+    defaultValue: number | undefined,
+    params: {getInput(name: string): string}
+  ): number => {
+    const strValue = params.getInput(paramName)
+    if (!strValue) {
+      if (!defaultValue) {
+        throw new Error(`${paramName} is required.`)
+      }
+      return defaultValue
+    }
+    if (isNaN(parseInt(strValue))) {
+      throw new Error(`${paramName} should be number. input: ${strValue}`)
+    }
+    return parseInt(strValue)
+  }
+  getInputBoolean = (
+    paramName: string,
+    defaultValue: boolean | undefined,
+    params: {getInput(name: string): string}
+  ): boolean => {
+    const strValue = params.getInput(paramName)
+    if (!strValue) {
+      if (defaultValue === undefined) {
+        throw new Error(`${paramName} is required.`)
+      }
+      return defaultValue
+    }
+    const boolStrValue = strValue.toLowerCase()
+    if (boolStrValue !== 'true' && boolStrValue !== 'false') {
+      throw new Error(`${paramName} should be true/false. input: ${strValue}`)
+    }
+    return boolStrValue === 'true'
   }
 }

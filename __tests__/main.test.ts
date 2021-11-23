@@ -11,6 +11,8 @@ test('test runs', async () => {
   process.env['INPUT_LABELS_TO_IGNORE'] = '["will close automatically by PR"]'
   process.env['INPUT_NUMBER_OF_DAYS_TO_IGNORE_LABEL'] = '16'
   process.env['INPUT_GITHUB_TOKEN'] = process.env['GH_TOKEN']
+  process.env['INPUT_DONT_MOVE_ISSUES_THAT_HAS_NO_INFORMATION_WHY_WAITING'] =
+    'false'
   process.env['GITHUB_REPOSITORY'] =
     'HiromiShikata/gh-actions-move-waiting-cards-on-projects'
   const np = process.execPath

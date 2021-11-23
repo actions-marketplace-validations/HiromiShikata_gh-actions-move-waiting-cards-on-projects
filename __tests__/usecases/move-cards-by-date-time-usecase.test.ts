@@ -133,7 +133,8 @@ describe('MoveCardsByDateTimeUsecase', () => {
           `To do`,
           `waiting till DATETIME/`,
           [`will close automatically by PR`, `convenience store`],
-          3
+          3,
+          false
         )
         if (expectMove) {
           expect(githubRepo.moveCard.mock.calls.length).toEqual(1)

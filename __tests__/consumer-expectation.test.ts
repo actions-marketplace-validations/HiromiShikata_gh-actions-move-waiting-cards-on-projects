@@ -27,7 +27,8 @@ describe('ConsumerExpectation Test', () => {
       'To do',
       'waiting till DATETIME/',
       [],
-      20
+      20,
+      false
     )
     const todoCards = await githubRepo.getCards('test-project', 'To do')
     await githubRepo.moveCard(todoCards[0], 'test-project', 'In waiting')

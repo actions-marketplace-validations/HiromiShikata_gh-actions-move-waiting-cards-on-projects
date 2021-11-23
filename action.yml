@@ -15,6 +15,8 @@ inputs:
     description: 'type is array. ex)["aaa","bbb"]'
   number_of_days_to_ignore_label:
     required: false
+  dont_move_issues_that_has_no_information_why_waiting:
+    required: false
   github_token:
     required: true
   how_many_columns_to_get:

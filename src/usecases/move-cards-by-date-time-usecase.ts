@@ -13,7 +13,8 @@ export class MoveCardsByDateTimeUsecase {
     toColumnName: string,
     prefixForDatetime: string,
     labelsToIgnore: string[],
-    numberOfDaysToIgnoreWithLabel: number
+    numberOfDaysToIgnoreWithLabel: number,
+    dontMoveIssuesThatHasNoInformationWhyWaiting: boolean
   ): Promise<void> => {
     const regex = this.createRegex(prefixForDatetime)
     const now = this.datetimeRepository.now()
@@ -56,6 +57,9 @@ export class MoveCardsByDateTimeUsecase {
           `${card.title} was moved because invalid format of datetime on title.`
         )
       } else {
+        if (dontMoveIssuesThatHasNoInformationWhyWaiting) {
+          continue
+        }
         await this.githubRepository.moveCard(card, projectName, toColumnName)
         await this.githubRepository.commentToTheCard(
           card,
