@@ -32,6 +32,7 @@ jobs:
           how_many_columns_to_get: 5
           how_many_cards_to_get: 15
           how_many_labels_to_get: 3
+          dont_move_issues_that_has_no_information_why_waiting: true
 ```
 
 ### Parameters
